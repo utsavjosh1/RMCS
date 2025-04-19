@@ -25,6 +25,33 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+// Utility functions moved outside the component
+const getJoinActionText = (status) => {
+  switch (status) {
+    case "waiting":
+      return "Joining Room";
+    case "in-progress":
+      return "Spectating Room";
+    case "finished":
+      return "Viewing Results";
+    default:
+      return "Accessing Room";
+  }
+};
+
+const getJoinActionVerb = (status) => {
+  switch (status) {
+    case "waiting":
+      return "joining";
+    case "in-progress":
+      return "spectating";
+    case "finished":
+      return "viewing";
+    default:
+      return "accessing";
+  }
+};
+
 export default function Home() {
   const { toast } = useToast();
   const [rooms, setRooms] = useState([]);
@@ -65,8 +92,12 @@ export default function Home() {
     const result = rooms.filter(
       (room) =>
         (debouncedFilters.search
-          ? room.title?.toLowerCase().includes(debouncedFilters.search.toLowerCase()) ||
-            room.roomCode?.toLowerCase().includes(debouncedFilters.search.toLowerCase())
+          ? room.title
+              ?.toLowerCase()
+              .includes(debouncedFilters.search.toLowerCase()) ||
+            room.roomCode
+              ?.toLowerCase()
+              .includes(debouncedFilters.search.toLowerCase())
           : true) &&
         (debouncedFilters.status !== "all"
           ? room.status === debouncedFilters.status
@@ -85,43 +116,14 @@ export default function Home() {
     setFilters(newFilters);
   }, []);
 
-  const handleJoinRoom = useCallback(
-    (roomId) => {
-      const room = rooms.find((r) => r.id === roomId);
-      if (!room) return;
-
-      if (room.status === "waiting" && room.players.current >= room.players.max) {
-        toast({
-          title: "Room is Full",
-          description: `Room ${room.roomCode} is at maximum capacity.`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (room.isPrivate && room.hostId !== currentUserId) {
-        toast({
-          title: "Private Room",
-          description: `This is a private room. Please enter the room code to join.`,
-          variant: "warning",
-        });
-
-        setTimeout(() => {
-          navigateToRoom(room);
-        }, 500);
-        return;
-      }
-
-      navigateToRoom(room);
-    },
-    [rooms, currentUserId, toast]
-  );
-
+  // navigateToRoom defined before handleJoinRoom
   const navigateToRoom = useCallback(
     (room) => {
       toast({
         title: getJoinActionText(room.status),
-        description: `You are ${getJoinActionVerb(room.status)} Room ${room.roomCode}`,
+        description: `You are ${getJoinActionVerb(room.status)} Room ${
+          room.roomCode
+        }`,
         variant: "default",
       });
 
@@ -151,34 +153,44 @@ export default function Home() {
         );
       }
     },
-    [currentUserId, toast]
+    [currentUserId, toast, setRooms]
   );
 
-  const getJoinActionText = (status) => {
-    switch (status) {
-      case "waiting":
-        return "Joining Room";
-      case "in-progress":
-        return "Spectating Room";
-      case "finished":
-        return "Viewing Results";
-      default:
-        return "Accessing Room";
-    }
-  };
+  // handleJoinRoom now includes navigateToRoom in dependencies
+  const handleJoinRoom = useCallback(
+    (roomId) => {
+      const room = rooms.find((r) => r.id === roomId);
+      if (!room) return;
 
-  const getJoinActionVerb = (status) => {
-    switch (status) {
-      case "waiting":
-        return "joining";
-      case "in-progress":
-        return "spectating";
-      case "finished":
-        return "viewing";
-      default:
-        return "accessing";
-    }
-  };
+      if (
+        room.status === "waiting" &&
+        room.players.current >= room.players.max
+      ) {
+        toast({
+          title: "Room is Full",
+          description: `Room ${room.roomCode} is at maximum capacity.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (room.isPrivate && room.hostId !== currentUserId) {
+        toast({
+          title: "Private Room",
+          description: `This is a private room. Please enter the room code to join.`,
+          variant: "warning",
+        });
+
+        setTimeout(() => {
+          navigateToRoom(room);
+        }, 500);
+        return;
+      }
+
+      navigateToRoom(room);
+    },
+    [rooms, currentUserId, toast, navigateToRoom]
+  );
 
   const handleCreateRoom = useCallback(() => {
     const newRoomId = `room-${rooms.length + 1}`;
