@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Filter, X } from "lucide-react"
 
-export function GamesFilter({ onFilterChange, gameTypes }) {
+const gameTypes = ["Raja Mantri Chor Sipahi"] // Initialize with default game type
+
+export function GamesFilter({ onFilterChange, includePrivacyFilter = false }) {
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("all")
   const [gameType, setGameType] = useState("all")
@@ -25,6 +27,13 @@ export function GamesFilter({ onFilterChange, gameTypes }) {
   const handleGameTypeChange = (value) => {
     setGameType(value)
     applyFilters(search, status, value)
+  }
+
+  const handlePrivacyChange = (value) => {
+    onFilterChange((prev) => ({
+      ...prev,
+      isPrivate: value,
+    }))
   }
 
   const applyFilters = (search, status, gameType) => {
@@ -46,9 +55,9 @@ export function GamesFilter({ onFilterChange, gameTypes }) {
     <div className="mb-6 space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
-            placeholder="Search games..."
+            placeholder="Search rooms..."
             value={search}
             onChange={handleSearchChange}
             className="pl-10 h-11 rounded-xl border-2 border-violet-200 focus-visible:ring-purple-500"
@@ -107,6 +116,22 @@ export function GamesFilter({ onFilterChange, gameTypes }) {
               </SelectContent>
             </Select>
           </div>
+
+          {includePrivacyFilter && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Room Type</label>
+              <Select onValueChange={handlePrivacyChange} defaultValue="all">
+                <SelectTrigger className="h-10 rounded-lg border-2 border-violet-200">
+                  <SelectValue placeholder="Filter by room type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Rooms</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       )}
     </div>

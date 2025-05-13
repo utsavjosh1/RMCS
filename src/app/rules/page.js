@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { Crown, Shield, User, UserCheck } from "lucide-react";
 
 const Rules = () => {
   return (
@@ -7,134 +8,205 @@ const Rules = () => {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <div className="inline-flex p-3 rounded-full bg-purple-100 text-purple-500 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12"></path>
-                <circle cx="17" cy="7" r="5"></circle>
-              </svg>
+              <Crown size={24} />
             </div>
             <h1 className="text-3xl font-bold text-purple-800 mb-3">
-              Community Rules
+              Raja Mantri Chor Sipahi
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our rules are designed to foster a positive, respectful, and inclusive gaming environment for all members. Please follow these guidelines to ensure our community remains a fun place for everyone.
+              A thrilling game of deception and deduction where players take on
+              secret roles and use their wits to outsmart each other. Will you
+              be the cunning Thief, the wise King, the helpful Minister, or the
+              sharp-eyed Policeman?
             </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border-4 border-violet-200">
             <div className="space-y-6">
               <section className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
-                <h2 className="font-bold text-lg text-gray-800 mb-3">General Guidelines</h2>
-                <ul className="space-y-1">
-                  {[
-                    "Be respectful to all community members.",
-                    "No harassment, hate speech, or bullying of any kind.",
-                    "Keep discussions civil and constructive.",
-                    "No spamming or excessive self-promotion.",
-                    "Respect the privacy of others."
-                  ].map((rule, idx) => (
-                    <li key={idx} className="text-sm text-gray-600 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                      {rule}
-                    </li>
-                  ))}
+                <h2 className="font-bold text-lg text-gray-800 mb-3">
+                  Game Setup
+                </h2>
+                <ul className="space-y-3">
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Four Roles:</span> Raja
+                      (King), Mantri (Minister), Chor (Thief), and Sipahi
+                      (Policeman)
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Preparation:</span> Each
+                      role is written on a chit (small piece of paper), folded,
+                      and shuffled
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Role Assignment:</span>{" "}
+                      Players secretly pick and view their roles
+                    </div>
+                  </li>
                 </ul>
               </section>
 
               <section className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
-                <h2 className="font-bold text-lg text-gray-800 mb-3">Content Rules</h2>
-                <ul className="space-y-1">
-                  {[
-                    "No explicit, illegal, or harmful content.",
-                    "Do not post copyrighted material without permission.",
-                    "Tag sensitive content appropriately with content warnings.",
-                    "Keep posts relevant to the community topic.",
-                    "Fact-check information before sharing when possible."
-                  ].map((rule, idx) => (
-                    <li key={idx} className="text-sm text-gray-600 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                      {rule}
-                    </li>
-                  ))}
+                <h2 className="font-bold text-lg text-gray-800 mb-3">
+                  Role Objectives
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl border-2 border-purple-200 bg-purple-50">
+                    <div className="flex items-center mb-2">
+                      <Crown className="text-yellow-500 mr-2" size={20} />
+                      <h3 className="font-semibold">Raja (King)</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Highest scoring role. Must maintain dignity and authority
+                      while observing the game.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border-2 border-blue-200 bg-blue-50">
+                    <div className="flex items-center mb-2">
+                      <Shield className="text-blue-500 mr-2" size={20} />
+                      <h3 className="font-semibold">Mantri (Minister)</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Second highest scoring role. Can help or mislead the
+                      Policeman through clever bluffing.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border-2 border-red-200 bg-red-50">
+                    <div className="flex items-center mb-2">
+                      <User className="text-red-500 mr-2" size={20} />
+                      <h3 className="font-semibold">Chor (Thief)</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      No base points. Must deceive the Policeman and avoid
+                      detection to score points.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border-2 border-green-200 bg-green-50">
+                    <div className="flex items-center mb-2">
+                      <UserCheck className="text-green-500 mr-2" size={20} />
+                      <h3 className="font-semibold">Sipahi (Policeman)</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Third highest scoring role. Must identify the Thief
+                      through observation and deduction.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
+                <h2 className="font-bold text-lg text-gray-800 mb-3">
+                  Gameplay Rules
+                </h2>
+                <ul className="space-y-3">
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Round Structure:</span> The
+                      game is played in multiple rounds, with each round
+                      focusing on the Policeman&apos;s attempt to identify the Thief
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Policeman&apos;s Turn:</span> The
+                      Policeman must guess which player is the Thief
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Role Switching:</span> If
+                      the Policeman guesses incorrectly, they switch places with
+                      the Thief
+                    </div>
+                  </li>
                 </ul>
               </section>
 
               <section className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
-                <h2 className="font-bold text-lg text-gray-800 mb-3">Moderation</h2>
-                <ul className="space-y-1">
-                  {[
-                    "Moderators have final say in all community decisions.",
-                    "Rule violations may result in content removal or temporary bans.",
-                    "Repeated violations may lead to permanent removal from the community.",
-                    "If you notice a rule violation, please report it rather than engaging directly.",
-                    "Appeals can be submitted through the Contact page."
-                  ].map((rule, idx) => (
-                    <li key={idx} className="text-sm text-gray-600 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                      {rule}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
-                <h2 className="font-bold text-lg text-gray-800 mb-3">Account Rules</h2>
-                <ul className="space-y-1">
-                  {[
-                    "One account per person.",
-                    "Do not share your account credentials with others.",
-                    "Account names and profile pictures must follow content guidelines.",
-                    "Users are responsible for all activity on their accounts."
-                  ].map((rule, idx) => (
-                    <li key={idx} className="text-sm text-gray-600 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                      {rule}
-                    </li>
-                  ))}
+                <h2 className="font-bold text-lg text-gray-800 mb-3">
+                  Scoring System
+                </h2>
+                <ul className="space-y-3">
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">King (Raja):</span> Highest
+                      points
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Minister (Mantri):</span>{" "}
+                      Second highest points
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Policeman (Sipahi):</span>{" "}
+                      Third highest points
+                    </div>
+                  </li>
+                  <li className="text-sm text-gray-600 flex items-start">
+                    <div className="p-1 rounded-full bg-green-100 text-green-500 mr-3 mt-0.5">
+                      <Crown size={14} />
+                    </div>
+                    <div>
+                      <span className="font-medium">Thief (Chor):</span> No base
+                      points, but can score by avoiding detection
+                    </div>
+                  </li>
                 </ul>
               </section>
 
               <div className="p-6 rounded-2xl border-2 border-purple-200 bg-purple-50">
-                <h3 className="font-bold text-lg text-gray-800 mb-2">Note:</h3>
-                <div className="text-sm text-gray-600">
-                  These rules are subject to change. Members will be notified of significant updates. By participating in our gaming community, you agree to follow these rules.
+                <h3 className="font-bold text-lg text-gray-800 mb-2">
+                  Key Strategies
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Bluffing:</span> Use clever
+                    deception to mislead other players
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Deduction:</span> Observe
+                    player behavior to identify roles
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Luck:</span> Sometimes, a good
+                    guess can turn the game around
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <h3 className="text-xl font-bold text-gray-700 mb-3">
-              Join Our Community
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-              <div className="p-4 rounded-xl bg-white/70 shadow-sm">
-                <div className="text-blue-500 mb-2">🎮</div>
-                <h4 className="font-semibold">Play Together</h4>
-                <p className="text-sm text-gray-600">
-                  Join matches with friendly players
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/70 shadow-sm">
-                <div className="text-pink-500 mb-2">💬</div>
-                <h4 className="font-semibold">Safe Environment</h4>
-                <p className="text-sm text-gray-600">
-                  Enjoy games without toxicity
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/70 shadow-sm">
-                <div className="text-purple-500 mb-2">🏆</div>
-                <h4 className="font-semibold">Community Events</h4>
-                <p className="text-sm text-gray-600">
-                  Participate in tournaments and contests
-                </p>
               </div>
             </div>
           </div>

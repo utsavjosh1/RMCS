@@ -144,6 +144,17 @@ exports.Prisma.RoomPlayersScalarFieldEnum = {
   roomId: 'roomId'
 };
 
+exports.Prisma.TestimonialScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  content: 'content',
+  rating: 'rating',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -167,7 +178,8 @@ exports.RoomStatus = exports.$Enums.RoomStatus = {
 exports.Prisma.ModelName = {
   GameRoom: 'GameRoom',
   Player: 'Player',
-  RoomPlayers: 'RoomPlayers'
+  RoomPlayers: 'RoomPlayers',
+  Testimonial: 'Testimonial'
 };
 
 /**

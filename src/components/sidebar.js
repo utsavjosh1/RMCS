@@ -4,16 +4,32 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  X,
-  Gamepad2,
-  Users,
-  HeartHandshake,
-  Home,
-  BookOpen,
-} from "lucide-react";
+import { Menu, X, HeartHandshake, Home, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const navItems = [
+  {
+    icon: Home,
+    label: "Home",
+    href: "/",
+    color: "bg-blue-100 hover:bg-blue-200 text-blue-700",
+    activeColor: "bg-blue-200 text-blue-800",
+  },
+  {
+    icon: HeartHandshake,
+    label: "Donate",
+    href: "/donate",
+    color: "bg-red-100 hover:bg-red-200 text-red-700",
+    activeColor: "bg-red-200 text-red-800",
+  },
+  {
+    icon: BookOpen,
+    label: "Rules",
+    href: "/rules",
+    color: "bg-purple-100 hover:bg-purple-200 text-purple-700",
+    activeColor: "bg-purple-200 text-purple-800",
+  },
+];
 
 export function Sidebar({ className }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,37 +38,6 @@ export function Sidebar({ className }) {
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
-
-  const navItems = [
-    {
-      icon: Home,
-      label: "Home",
-      href: "/",
-      color: "bg-blue-100 hover:bg-blue-200 text-blue-700",
-      activeColor: "bg-blue-200 text-blue-800",
-    },
-    {
-      icon: Gamepad2,
-      label: "Play",
-      href: "/play",
-      color: "bg-green-100 hover:bg-green-200 text-green-700",
-      activeColor: "bg-green-200 text-green-800",
-    },
-    {
-      icon: HeartHandshake,
-      label: "Donate",
-      href: "/donate",
-      color: "bg-red-100 hover:bg-red-200 text-red-700",
-      activeColor: "bg-red-200 text-red-800",
-    },
-    {
-      icon: BookOpen,
-      label: "Rules",
-      href: "/rules",
-      color: "bg-purple-100 hover:bg-purple-200 text-purple-700",
-      activeColor: "bg-purple-200 text-purple-800",
-    },
-  ];
 
   return (
     <div
