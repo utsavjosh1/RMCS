@@ -10,7 +10,6 @@ export async function refreshSession() {
   try {
     // Force a fresh request to the session endpoint
     const session = await getSession({ force: true });
-    console.log('Session refresh result:', session ? 'Session found' : 'No session found');
     
     // Log cookie information if available
     if (typeof window !== 'undefined') {
@@ -18,15 +17,10 @@ export async function refreshSession() {
         .map(cookie => cookie.trim())
         .filter(cookie => 
           cookie.startsWith('next-auth.session-token=') || 
-          cookie.startsWith('authjs.session-token=')
+          cookie.startsWith("authjs.session-token=")
         );
-      
-      console.log('Auth cookies found:', authCookies.length > 0 ? 'Yes' : 'No');
-      if (authCookies.length > 0) {
-        console.log('Auth cookie names:', authCookies.map(c => c.split('=')[0]));
-      }
     }
-    
+
     return session;
   } catch (error) {
     console.error('Error refreshing session:', error);

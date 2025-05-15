@@ -231,8 +231,7 @@ async function handleLeaveRoom(socket, roomCode, userId) {
 
 // Handle socket connections
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
-  let currentUser = null;
+    let currentUser = null;
   let currentRoom = null;
 
   // Join room - add callback for acknowledgment
@@ -253,7 +252,6 @@ io.on("connection", (socket) => {
 
       // Check if player is already in another room
       if (currentUser && currentRoom && currentRoom !== roomCode) {
-        console.log(`Player ${userName} (${userId}) is attempting to join room ${roomCode} while in room ${currentRoom}`);
         
         // Force leave the current room first
         try {
@@ -294,7 +292,6 @@ io.on("connection", (socket) => {
       
       // If player is already in the room, just reconnect them
       if (isPlayerInRoom) {
-        console.log(`Player ${userName} (${userId}) is reconnecting to room ${roomCode}`);
         
         // Join the socket room
         socket.join(roomCode);
@@ -663,7 +660,6 @@ io.on("connection", (socket) => {
 
   // Disconnect handler - also use the extracted helper function
   socket.on("disconnect", async () => {
-    console.log("Client disconnected:", socket.id);
 
     if (currentUser && currentRoom) {
       // Handle as a "leave room" event
