@@ -9,7 +9,7 @@
 
 export const VERSION = {
   major: 1,
-  minor: 0,
+  minor: 1,
   patch: 0,
   build: process.env.NEXT_PUBLIC_BUILD_NUMBER || 'dev',
   get full() {

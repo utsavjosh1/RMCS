@@ -100,23 +100,6 @@ export function GamesFilter({ onFilterChange, includePrivacyFilter = false }) {
             </Select>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Game Type</label>
-            <Select value={gameType} onValueChange={handleGameTypeChange}>
-              <SelectTrigger className="h-10 rounded-lg border-2 border-violet-200">
-                <SelectValue placeholder="Filter by game type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Game Types</SelectItem>
-                {gameTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {includePrivacyFilter && (
             <div>
               <label className="text-sm font-medium text-gray-700 mb-1 block">Room Type</label>

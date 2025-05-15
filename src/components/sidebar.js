@@ -40,54 +40,56 @@ export function Sidebar({ className }) {
   };
 
   return (
-    <div
-      className={cn(
-        "flex flex-col h-screen fixed top-0 left-0 bg-violet-50 border-r-4 border-violet-300 transition-all duration-300 shadow-lg",
-        collapsed ? "w-24" : "w-72",
-        "rounded-r-3xl overflow-hidden",
-        className
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-        {!collapsed && (
-          <h2 className="font-bold text-xl tracking-wide rotate-[-1deg] transform">
-            RMCS!
-          </h2>
+    <>
+      <div
+        className={cn(
+          "flex flex-col h-screen fixed top-0 left-0 bg-violet-50 border-r-4 border-violet-300 transition-all duration-300 shadow-lg",
+          collapsed ? "w-24" : "w-72",
+          "rounded-r-3xl overflow-hidden",
+          className
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="text-white hover:bg-white/20 hover:rotate-6 transition-transform"
-        >
-          {collapsed ? <Menu size={24} /> : <X size={24} />}
-        </Button>
-      </div>
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+          {!collapsed && (
+            <h2 className="font-bold text-xl tracking-wide rotate-[-1deg] transform">
+              RMCS!
+            </h2>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="text-white hover:bg-white/20 hover:rotate-6 transition-transform"
+          >
+            {collapsed ? <Menu size={24} /> : <X size={24} />}
+          </Button>
+        </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavItem
-            key={item.href}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            collapsed={collapsed}
-            active={pathname === item.href}
-            color={item.color}
-            activeColor={item.activeColor}
-          />
-        ))}
-      </nav>
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {navItems.map((item) => (
+            <NavItem
+              key={item.href}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              collapsed={collapsed}
+              active={pathname === item.href}
+              color={item.color}
+              activeColor={item.activeColor}
+            />
+          ))}
+        </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t-4 border-violet-300 bg-violet-100">
-        <div className="text-center text-violet-700 font-medium text-sm">
-          {collapsed ? "🎮" : "Happy Gaming! 🎮"}
+        {/* Footer */}
+        <div className="p-4 border-t-4 border-violet-300 bg-violet-100">
+          <div className="text-center text-violet-700 font-medium text-sm">
+            {collapsed ? "🎮" : "Happy Gaming! 🎮"}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

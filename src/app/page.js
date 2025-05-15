@@ -10,12 +10,12 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center">
+              <h1 className="text-3xl font-bangers text-purple-800 mb-2 flex items-center tracking-wide">
                 <Gamepad2 className="mr-2 text-pink-500" size={32} />
-                Game Rooms
+                Raja Mantri Chor Sipahi
               </h1>
-              <p className="text-gray-600">
-                Join an existing room or create your own!
+              <p className="text-gray-600 font-poppins">
+                Join an existing room or create your own to play the classic Indian card game!
               </p>
             </div>
           </div>

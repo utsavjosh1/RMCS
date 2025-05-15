@@ -1,7 +1,8 @@
-import { createServer } from "http";
-import { Server } from "socket.io";
 import next from "next";
-import initSocket from "./lib/socket.js";
+import { Server } from "socket.io";
+
+import { createServer } from "http";
+import initSocket from "./server/socket";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -12,7 +13,12 @@ app.prepare().then(() => {
     handle(req, res);
   });
 
-  const io = new Server(server);
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      methods: ["GET", "POST"],
+    },
+  });
   initSocket(io);
 
   const port = process.env.PORT || 3000;
@@ -20,4 +26,4 @@ app.prepare().then(() => {
     if (err) throw err;
     console.log(`> Ready on http://localhost:${port}`);
   });
-}); 
+});

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/db/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export const GET = async () => {
   try {
@@ -35,95 +37,89 @@ export const GET = async () => {
   }
 };
 
-export const POST = async (request) => {
-  try {
-    const body = await request.json();
-    const { title, hostId, hostName, isPrivate = false } = body;
+function generateRoomCode() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 
-    // Validate required fields
-    if (!title || !hostId || !hostName) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Missing required fields",
-        },
-        { status: 400 }
-      );
-    }
+export async function POST(request) {
+  try {
+    const session = await getServerSession(authOptions);
+    const body = await request.json();
+    const { title, hostId, hostName, isPrivate } = body;
 
     // Generate a unique room code
-    const generateRoomCode = () => {
-      return Math.random().toString(36).substring(2, 8).toUpperCase();
-    };
-
-    // Keep generating until we get a unique code
     let roomCode;
-    let isUnique = false;
-    while (!isUnique) {
+    let isCodeUnique = false;
+    
+    // Try to find a unique code with minimal database queries
+    while (!isCodeUnique) {
       roomCode = generateRoomCode();
       const existingRoom = await prisma.gameRoom.findUnique({
         where: { roomCode },
+        select: { id: true } // Only select ID field for performance
       });
-      if (!existingRoom) {
-        isUnique = true;
-      }
+      isCodeUnique = !existingRoom;
     }
 
-    // Create the room with all related data in a transaction
+    // Create room in a transaction to ensure data integrity
     const newRoom = await prisma.$transaction(async (tx) => {
-      // Create the room
+      // Create the game room
       const room = await tx.gameRoom.create({
         data: {
           roomCode,
-          title,
-          imageUrl: `https://robohash.org/${encodeURIComponent(title)}.png?size=200x200&set=set2`,
+          title: title || `${hostName}'s Room`,
+          imageUrl: `/room-images/${Math.floor(Math.random() * 6) + 1}.jpg`,
           status: "waiting",
           hostId,
           hostName,
-          isPrivate,
-          // Create the players count record
+          isPrivate: !!isPrivate,
+          // Create RoomPlayers at the same time
           players: {
             create: {
-              current: 1,
-              max: 4,
-            },
-          },
-          // Create the initial player (host)
-          playersList: {
-            create: {
-              id: hostId,
-              name: hostName,
-              isReady: false,
-              joinedAt: new Date(),
-            },
-          },
+              current: 0,
+              max: 4
+            }
+          }
         },
         include: {
-          players: true,
-          playersList: true,
-        },
+          players: true
+        }
       });
+
+      // If the user is authenticated, update their game stats
+      if (session?.user?.id === hostId) {
+        await tx.gameStats.upsert({
+          where: { userId: hostId },
+          update: {
+            roomsCreated: { increment: 1 }
+          },
+          create: {
+            userId: hostId,
+            gamesPlayed: 0,
+            gamesWon: 0,
+            roomsCreated: 1,
+            totalScore: 0
+          }
+        });
+      }
 
       return room;
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: newRoom,
-        message: "Room created successfully",
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({
+      success: true,
+      data: newRoom
+    });
   } catch (error) {
-    console.error("❌ Failed to create game room:", error);
+    console.error("Error creating room:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-        error: error instanceof Error ? error.message : String(error),
-      },
+      { error: "Failed to create room" },
       { status: 500 }
     );
   }
-};
+}
