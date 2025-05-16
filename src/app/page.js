@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Gamepad2 } from "lucide-react";
+
 import { GameRooms } from "@/components/game-rooms";
 import { GameRoomsSkeleton } from "@/components/game-rooms-skeleton";
 

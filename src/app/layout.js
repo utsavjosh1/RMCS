@@ -1,9 +1,9 @@
 import { Inter, Poppins, Bangers } from "next/font/google";
-import { ToastProvider } from "@/hooks/use-toast";
+
 import { VersionDisplay } from "@/components/version-display";
-import { AuthProvider } from "@/providers/AuthProvider";
-import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
+import { Providers } from "@/components/providers";
+import "@/app/globals.css";
+import { AppShell } from "@/components/app-shell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,13 +40,10 @@ export default function RootLayout({ children }) {
         className={`${inter.variable} ${poppins.variable} ${bangers.variable} antialiased font-poppins`}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <Sidebar />
-          <ToastProvider>
-            {children}
-            <VersionDisplay />
-          </ToastProvider>
-        </AuthProvider>
+        <Providers>
+          <AppShell>{children}</AppShell>
+          <VersionDisplay />
+        </Providers>
       </body>
     </html>
   );

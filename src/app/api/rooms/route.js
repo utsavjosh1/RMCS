@@ -38,8 +38,8 @@ export const GET = async () => {
 };
 
 function generateRoomCode() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -55,13 +55,13 @@ export async function POST(request) {
     // Generate a unique room code
     let roomCode;
     let isCodeUnique = false;
-    
+
     // Try to find a unique code with minimal database queries
     while (!isCodeUnique) {
       roomCode = generateRoomCode();
       const existingRoom = await prisma.gameRoom.findUnique({
         where: { roomCode },
-        select: { id: true } // Only select ID field for performance
+        select: { id: true }, // Only select ID field for performance
       });
       isCodeUnique = !existingRoom;
     }
@@ -82,13 +82,13 @@ export async function POST(request) {
           players: {
             create: {
               current: 0,
-              max: 4
-            }
-          }
+              max: 4,
+            },
+          },
         },
         include: {
-          players: true
-        }
+          players: true,
+        },
       });
 
       // If the user is authenticated, update their game stats
@@ -96,15 +96,15 @@ export async function POST(request) {
         await tx.gameStats.upsert({
           where: { userId: hostId },
           update: {
-            roomsCreated: { increment: 1 }
+            roomsCreated: { increment: 1 },
           },
           create: {
             userId: hostId,
             gamesPlayed: 0,
             gamesWon: 0,
             roomsCreated: 1,
-            totalScore: 0
-          }
+            totalScore: 0,
+          },
         });
       }
 
@@ -113,7 +113,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      data: newRoom
+      data: newRoom,
     });
   } catch (error) {
     console.error("Error creating room:", error);

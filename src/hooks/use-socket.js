@@ -12,7 +12,7 @@ export function useSocket() {
   useEffect(() => {
     // Initialize socket connection
     socketRef.current = io(
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001",
+      process.env.SOCKET_URL || "http://localhost:3001",
       {
         autoConnect: true,
         reconnectionAttempts: maxReconnectAttempts,

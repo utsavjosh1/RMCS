@@ -18,7 +18,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useId } from "react";
-import { useSession } from "next-auth/react";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 export default function GameRoom() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function GameRoom() {
   const { toast } = useToast();
   const socket = useSocket();
   const roomCode = params.roomCode;
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useSessionManager();
 
   // Get user ID and name from authentication first, fallback to localStorage if not authenticated
   const baseId = useId();
@@ -40,8 +40,8 @@ export default function GameRoom() {
 
   // Use authentication for user identity, with fallback for anonymous users
   const getUserId = () => {
-    if (session?.user?.id) {
-      return session.user.id;
+    if (user?.id) {
+      return user.id;
     }
     
     if (typeof window !== "undefined") {
@@ -57,8 +57,8 @@ export default function GameRoom() {
   };
 
   const getUserName = () => {
-    if (session?.user?.name) {
-      return session.user.name;
+    if (user?.name) {
+      return user.name;
     }
     
     if (typeof window !== "undefined") {
@@ -160,7 +160,7 @@ export default function GameRoom() {
       }
 
       // Store minimal info for anonymous users
-      if (!session && typeof window !== "undefined") {
+      if (!isAuthenticated && typeof window !== "undefined") {
         localStorage.setItem("userId", currentUserId);
         localStorage.setItem("playerName", currentUserName);
       }
@@ -241,7 +241,7 @@ export default function GameRoom() {
     handleError,
     hasJoined,
     room,
-    session
+    isAuthenticated
   ]);
 
   // Leave room function - call this when the user leaves or the component unmounts
@@ -292,11 +292,11 @@ export default function GameRoom() {
   // Update game statistics when the game ends
   const updateGameStats = useCallback(async (result) => {
     // Only update stats for authenticated users
-    if (!session?.user?.id) return;
+    if (!user?.id) return;
     
     try {
       // Record that the user played a game
-      await fetch(`/api/users/${session.user.id}/stats/update`, {
+      await fetch(`/api/users/${user.id}/stats/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "gamePlayed" }),
@@ -304,7 +304,7 @@ export default function GameRoom() {
       
       // If the user won, update their win count
       if (result?.winner === currentUserId) {
-        await fetch(`/api/users/${session.user.id}/stats/update`, {
+        await fetch(`/api/users/${user.id}/stats/update`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "gameWon" }),
@@ -313,7 +313,7 @@ export default function GameRoom() {
       
       // If there's a score to add
       if (result?.score) {
-        await fetch(`/api/users/${session.user.id}/stats/update`, {
+        await fetch(`/api/users/${user.id}/stats/update`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -325,7 +325,7 @@ export default function GameRoom() {
     } catch (error) {
       console.error("Error updating game stats:", error);
     }
-  }, [session, currentUserId]);
+  }, [user, currentUserId]);
 
   // Fetch room details and set up socket listeners
   useEffect(() => {
@@ -712,7 +712,7 @@ export default function GameRoom() {
     hasRoomBeenFetched,
     isLoading,
     errorMessage,
-    session,
+    isAuthenticated,
     updateGameStats
   ]);
 

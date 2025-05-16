@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 export function AuthModal({ 
   isOpen, 
@@ -13,14 +14,14 @@ export function AuthModal({
   message = "Sign in to save your progress and game statistics",
   callbackUrl
 }) {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading: sessionLoading } = useSessionManager();
   const [isLoading, setIsLoading] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
   const router = useRouter();
 
   // Close modal when authentication completes
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    if (isAuthenticated && user) {
       // Show success state before closing
       setAuthSuccess(true);
       
@@ -37,7 +38,7 @@ export function AuthModal({
       
       return () => clearTimeout(timer);
     }
-  }, [status, session, onClose, onSuccess, router, callbackUrl]);
+  }, [isAuthenticated, user, onClose, onSuccess, router, callbackUrl]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -80,19 +81,19 @@ export function AuthModal({
             <p className="text-gray-600 text-sm mb-4">
               You have been signed in successfully!
             </p>
-            {session?.user?.image && (
+            {user?.image && (
               <div className="flex justify-center mb-4">
                 <Image 
-                  src={session.user.image} 
+                  src={user.image} 
                   width={60} 
                   height={60} 
-                  alt={session.user.name || "User"} 
+                  alt={user.name || "User"} 
                   className="rounded-full"
                 />
               </div>
             )}
             <p className="text-gray-700 font-medium">
-              Welcome, {session?.user?.name || "User"}!
+              Welcome, {user?.name || "User"}!
             </p>
           </div>
         ) : (
@@ -108,10 +109,10 @@ export function AuthModal({
 
             <Button
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={isLoading || sessionLoading}
               className="w-full py-6 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-xl flex items-center justify-center space-x-3 shadow-sm transition"
             >
-              {isLoading ? (
+              {isLoading || sessionLoading ? (
                 <div className="w-5 h-5 border-t-2 border-b-2 border-gray-800 rounded-full animate-spin"></div>
               ) : (
                 <Image
@@ -122,20 +123,11 @@ export function AuthModal({
                 />
               )}
               <span className="font-medium">
-                {isLoading ? "Signing in..." : "Sign in with Google"}
+                {isLoading || sessionLoading ? "Signing in..." : "Sign in with Google"}
               </span>
             </Button>
 
             <div className="mt-4 flex justify-between">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Continue as Guest
-              </Button>
-              
               <Button 
                 variant="ghost" 
                 size="sm" 
