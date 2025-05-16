@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build:
@@ -10,10 +12,13 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-      - SOCKET_URL=http://socket:3001
+      - SOCKET_URL=${SOCKET_URL}
+      - REDIS_URL=${REDIS_URL}
     restart: unless-stopped
     depends_on:
       - socket
+      - redis
+      - db
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
@@ -32,5 +37,43 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-      - SOCKET_PORT=3001
-    restart: unless-stopped 
+      - SOCKET_PORT=${SOCKET_PORT}
+      - REDIS_URL=${REDIS_URL}
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-rmcs}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data: 

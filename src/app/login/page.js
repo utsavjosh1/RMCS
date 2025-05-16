@@ -1,24 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { isAuthenticated, isLoading: sessionLoading } = useSessionManager();
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   // If authenticated, redirect to callbackUrl or home
   useEffect(() => {
-    if (status === "authenticated") {
+    if (isAuthenticated) {
       router.push(callbackUrl);
     }
-  }, [status, callbackUrl, router]);
+  }, [isAuthenticated, callbackUrl, router]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -31,6 +32,17 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking session
+  if (sessionLoading) {
+    return (
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-indigo-50 to-pink-50">
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="w-16 h-16 border-t-4 border-purple-500 border-solid rounded-full animate-spin"></div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-br from-indigo-50 to-pink-50">
@@ -69,14 +81,6 @@ export default function LoginPage() {
               <span className="font-medium">
                 {isLoading ? "Signing in..." : "Sign in with Google"}
               </span>
-            </Button>
-
-            <Button
-              onClick={() => router.push("/")}
-              variant="outline"
-              className="w-full mt-4"
-            >
-              Continue as Guest
             </Button>
 
             <div className="text-center text-sm text-gray-500 mt-8">

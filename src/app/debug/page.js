@@ -1,12 +1,11 @@
 "use client";
 
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSessionManager } from "@/hooks/use-session-manager";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { refreshSession, hasAuthCookies } from "@/lib/session-helper";
 
 export default function DebugPage() {
-  const { data: session, status, update } = useSession();
+  const { user, isAuthenticated, isLoading: sessionLoading, checkSession, refreshSession } = useSessionManager();
   const router = useRouter();
   const [error, setError] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
@@ -31,8 +30,7 @@ export default function DebugPage() {
       setCookieInfo({
         allCookies: cookies.map(c => c.split('=')[0]),
         authCookies: authCookies.map(c => c.split('=')[0]),
-        authCookiesPresent: authCookies.length > 0,
-        hasAuthCookiesMethod: hasAuthCookies()
+        authCookiesPresent: authCookies.length > 0
       });
     }
   }, []);
@@ -64,13 +62,8 @@ export default function DebugPage() {
     try {
       setError(null);
       // Force a session refresh
-      const refreshedSession = await refreshSession();
-      if (refreshedSession) {
-        update(refreshedSession);
-        setApiResponse({ message: "Session refreshed successfully", session: refreshedSession });
-      } else {
-        setError("Failed to refresh session");
-      }
+      await refreshSession();
+      setApiResponse({ message: "Session refreshed successfully" });
       
       // Also update cookie info
       if (typeof window !== 'undefined') {
@@ -86,8 +79,7 @@ export default function DebugPage() {
         setCookieInfo({
           allCookies: cookies.map(c => c.split('=')[0]),
           authCookies: authCookies.map(c => c.split('=')[0]),
-          authCookiesPresent: authCookies.length > 0,
-          hasAuthCookiesMethod: hasAuthCookies()
+          authCookiesPresent: authCookies.length > 0
         });
       }
     } catch (err) {
@@ -109,30 +101,29 @@ export default function DebugPage() {
       <h1 className="text-2xl font-bold mb-6">Session Debug Page</h1>
       
       <div className="bg-gray-100 p-6 rounded-lg mb-6">
-        <h2 className="text-xl font-semibold mb-4">Session Status: {status}</h2>
+        <h2 className="text-xl font-semibold mb-4">Session Status: {sessionLoading ? "loading" : isAuthenticated ? "authenticated" : "unauthenticated"}</h2>
         
-        {status === "loading" && (
+        {sessionLoading && (
           <div className="animate-pulse">Loading session information...</div>
         )}
         
-        {status === "authenticated" && (
+        {isAuthenticated && user && (
           <div>
-            <p className="mb-2"><strong>Logged in as:</strong> {session.user?.name}</p>
-            <p className="mb-2"><strong>Email:</strong> {session.user?.email}</p>
-            <p className="mb-2"><strong>User ID:</strong> {session.user?.id || "Not available"}</p>
-            <p className="mb-2"><strong>Has Access Token:</strong> {session.accessToken ? "Yes" : "No"}</p>
+            <p className="mb-2"><strong>Logged in as:</strong> {user.name}</p>
+            <p className="mb-2"><strong>Email:</strong> {user.email}</p>
+            <p className="mb-2"><strong>User ID:</strong> {user.id || "Not available"}</p>
             
             <pre className="bg-gray-800 text-white p-4 rounded mt-4 overflow-auto max-h-60">
-              {JSON.stringify(session, null, 2)}
+              {JSON.stringify(user, null, 2)}
             </pre>
           </div>
         )}
         
-        {status === "unauthenticated" && (
+        {!isAuthenticated && (
           <div className="text-red-500">
             <p>You are not logged in. Session data is not available.</p>
             <button 
-              onClick={() => signIn("google")}
+              onClick={() => router.push("/login")}
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             >
               Sign in with Google
@@ -147,7 +138,6 @@ export default function DebugPage() {
           <h2 className="text-xl font-semibold mb-4">Browser Cookies</h2>
           <div>
             <p className="mb-2"><strong>Auth Cookies Present:</strong> {cookieInfo.authCookiesPresent ? "Yes" : "No"}</p>
-            <p className="mb-2"><strong>hasAuthCookies() Check:</strong> {cookieInfo.hasAuthCookiesMethod ? "Yes" : "No"}</p>
             
             {cookieInfo.authCookies.length > 0 && (
               <div className="mb-4">
