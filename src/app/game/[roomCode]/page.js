@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useId } from "react";
 import { useSessionManager } from "@/hooks/use-session-manager";
+import { api } from "@/lib/api";
 
 export default function GameRoom() {
   const router = useRouter();
@@ -177,15 +178,9 @@ export default function GameRoom() {
 
       try {
         // First update the database via the API
-        const response = await fetch(`/api/rooms/${roomCode}/join`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            userId: currentUserId, 
-            userName: currentUserName 
-          }),
+        const response = await api.joinRoom(roomCode, {
+          userId: currentUserId,
+          userName: currentUserName,
         });
 
         if (!response.ok) {
@@ -250,12 +245,8 @@ export default function GameRoom() {
 
       try {
         // First remove the player from the database
-        const response = await fetch(`/api/rooms/${roomCode}/leave`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: currentUserId }),
+        const response = await api.leaveRoom(roomCode, {
+          userId: currentUserId,
         });
 
         if (!response.ok) {
@@ -296,30 +287,22 @@ export default function GameRoom() {
     
     try {
       // Record that the user played a game
-      await fetch(`/api/users/${user.id}/stats/update`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "gamePlayed" }),
+      await api.updateUserStats(user.id, {
+        action: "gamePlayed",
       });
       
       // If the user won, update their win count
       if (result?.winner === currentUserId) {
-        await fetch(`/api/users/${user.id}/stats/update`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "gameWon" }),
+        await api.updateUserStats(user.id, {
+          action: "gameWon",
         });
       }
       
       // If there's a score to add
       if (result?.score) {
-        await fetch(`/api/users/${user.id}/stats/update`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            action: "scoreAdded",
-            score: result.score 
-          }),
+        await api.updateUserStats(user.id, {
+          action: "scoreAdded",
+          score: result.score,
         });
       }
     } catch (error) {
@@ -358,7 +341,7 @@ export default function GameRoom() {
       if (hasRoomBeenFetched || hasAttemptedToJoin.current) return;
       
       try {
-        const response = await fetch(`/api/rooms/${roomCode}`);
+        const response = await api.getRoom(roomCode);
         if (!response.ok) {
           throw new Error(
             response.status === 404
@@ -722,7 +705,7 @@ export default function GameRoom() {
       // If socket connected but we're still loading and haven't fetched room yet, try to fetch
       const fetchRoomData = async () => {
         try {
-          const response = await fetch(`/api/rooms/${roomCode}`);
+          const response = await api.getRoom(roomCode);
           
           if (!response.ok) {
             throw new Error("Failed to load room");

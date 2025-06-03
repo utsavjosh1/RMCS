@@ -1,40 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: sessionLoading } = useSessionManager();
-  const [isLoading, setIsLoading] = useState(false);
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const { isAuthenticated, isLoading, login, createGuest } = useAuth();
+  const [guestName, setGuestName] = useState("");
+  const [isCreatingGuest, setIsCreatingGuest] = useState(false);
+  const [showGuestForm, setShowGuestForm] = useState(false);
 
-  // If authenticated, redirect to callbackUrl or home
+  // If authenticated, redirect to home
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(callbackUrl);
+      router.push("/");
     }
-  }, [isAuthenticated, callbackUrl, router]);
+  }, [isAuthenticated, router]);
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+  const handleGoogleSignIn = () => {
+    login();
+  };
+
+  const handleGuestLogin = async () => {
+    if (!guestName.trim()) return;
+
+    setIsCreatingGuest(true);
     try {
-      await signIn("google", {
-        callbackUrl: callbackUrl,
-      });
+      await createGuest(guestName.trim());
+      router.push("/");
     } catch (error) {
-      console.error("Authentication error:", error);
-      setIsLoading(false);
+      console.error("Error creating guest:", error);
+    } finally {
+      setIsCreatingGuest(false);
     }
   };
 
-  // Show loading state while checking session
-  if (sessionLoading) {
+  // Show loading state while checking authentication
+  if (isLoading) {
     return (
       <div className="flex min-h-screen w-full bg-gradient-to-br from-indigo-50 to-pink-50">
         <main className="flex-1 flex items-center justify-center p-6">
@@ -47,48 +52,89 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-br from-indigo-50 to-pink-50">
       <main className="flex-1 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border-4 border-violet-300 max-w-md w-full">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bangers text-purple-800 tracking-wide mb-4">
-              Raja Mantri Chor Sipahi
+            <h1 className="text-3xl font-bangers text-purple-800 tracking-wide mb-2">
+              Welcome to RMCS
             </h1>
-            <p className="text-gray-600">
-              Sign in to create rooms, join games, and play with friends!
+            <p className="text-gray-600 text-sm">
+              Sign in to play Raja Mantri Chor Sipahi
             </p>
-            {callbackUrl !== "/" && (
-              <p className="mt-2 text-sm text-indigo-600">
-                You'll be redirected after login
-              </p>
-            )}
           </div>
 
           <div className="space-y-4">
+            {/* Google Sign In */}
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               className="w-full py-6 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-xl flex items-center justify-center space-x-3 shadow-sm transition"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-t-2 border-b-2 border-gray-800 rounded-full animate-spin"></div>
-              ) : (
-                <Image
-                  src="/google-logo.svg"
-                  width={20}
-                  height={20}
-                  alt="Google logo"
-                />
-              )}
-              <span className="font-medium">
-                {isLoading ? "Signing in..." : "Sign in with Google"}
-              </span>
+              <Image
+                src="/google-logo.svg"
+                width={20}
+                height={20}
+                alt="Google logo"
+              />
+              <span className="font-medium">Sign in with Google</span>
             </Button>
 
-            <div className="text-center text-sm text-gray-500 mt-8">
-              <p>
-                By signing in, you agree to our privacy policy and terms of
-                service.
-              </p>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or</span>
+              </div>
             </div>
+
+            {/* Guest Login */}
+            {!showGuestForm ? (
+              <Button
+                onClick={() => setShowGuestForm(true)}
+                variant="outline"
+                className="w-full py-6 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl"
+              >
+                Continue as Guest
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onKeyPress={(e) => e.key === "Enter" && handleGuestLogin()}
+                  disabled={isCreatingGuest}
+                />
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handleGuestLogin}
+                    disabled={!guestName.trim() || isCreatingGuest}
+                    className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl"
+                  >
+                    {isCreatingGuest ? "Creating..." : "Play as Guest"}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowGuestForm(false);
+                      setGuestName("");
+                    }}
+                    variant="outline"
+                    disabled={isCreatingGuest}
+                    className="px-4 py-3 border-gray-300 text-gray-700 rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-xs text-gray-500">
+              By signing in, you agree to our terms of service and privacy policy.
+            </p>
           </div>
         </div>
       </main>

@@ -91,8 +91,7 @@ export function GamesPagination({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
+          <Button variant="outline"
             size="icon"
             className="h-8 w-8 rounded-lg"
             onClick={() => onPageChange(1)}

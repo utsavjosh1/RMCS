@@ -117,9 +117,11 @@ export function GameCard({ game, onJoin, currentUserId }) {
             <div className="flex items-center text-gray-600 my-2">
               <Clock size={18} className="mr-1 text-orange-500" />
               <span className="text-sm">
-                {new Date(game.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
+                {new Date(game.createdAt).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                  timeZone: 'UTC'
                 })}
               </span>
             </div>
@@ -203,9 +205,11 @@ export function GameCard({ game, onJoin, currentUserId }) {
           <div className="flex items-center text-gray-600 my-2">
             <Clock size={18} className="mr-1 text-orange-500" />
             <span className="text-sm">
-              {new Date(game.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
+              {new Date(game.createdAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'UTC'
               })}
             </span>
           </div>

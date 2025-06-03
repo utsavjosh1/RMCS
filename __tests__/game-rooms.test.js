@@ -19,12 +19,15 @@ vi.mock('../src/hooks/use-toast', () => ({
   }),
 }));
 
-// Mock the session manager hook
-vi.mock('../src/hooks/use-session-manager', () => ({
-  useSessionManager: () => ({
+// Mock the auth hook
+vi.mock('../src/hooks/use-auth', () => ({
+  useAuth: () => ({
     user: null,
     isAuthenticated: false,
-    checkSession: vi.fn(),
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    createGuest: vi.fn(),
   }),
 }));
 

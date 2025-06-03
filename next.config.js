@@ -30,7 +30,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const socketUrl = process.env.SOCKET_URL || "http://localhost:3001";
+    const socketUrl = process.env.SOCKET_URL || "http://localhost:8000";
     return [
       {
         source: "/socket.io/:path*",

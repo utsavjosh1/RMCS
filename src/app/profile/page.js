@@ -1,59 +1,51 @@
 "use client";
 
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { api } from "@/lib/api";
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading: sessionLoading, checkSession } = useSessionManager();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [stats, setStats] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const router = useRouter();
   const statsLoaded = useRef(false);
-
-  // Force a session check on page load
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Only fetch stats if we haven't already and the user is authenticated
     if (!statsLoaded.current && isAuthenticated && user) {
       // Ensure user has an ID before fetching stats
       if (!user.id) {
-        setIsLoading(false);
+        setIsLoadingStats(false);
         return;
       }
 
       // Fetch user stats from API
-      fetch("/api/users/stats")
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`API returned ${res.status}: ${res.statusText}`);
-          }
-          return res.json();
-        })
+      api.getUserStats()
         .then((data) => {
           setStats(data);
           statsLoaded.current = true;
-          setIsLoading(false);
+          setIsLoadingStats(false);
         })
         .catch((error) => {
           console.error("Failed to fetch user stats:", error);
-          setIsLoading(false);
+          setError("Failed to load stats");
+          setIsLoadingStats(false);
         });
     } else if (!isAuthenticated) {
       // Redirect to login if not authenticated
       router.push("/login?callbackUrl=/profile");
-    } else if (!sessionLoading) {
+    } else if (!isLoading) {
       // If we're not loading, not fetching stats, and not redirecting, we can stop loading
-      setIsLoading(false);
+      setIsLoadingStats(false);
     }
-  }, [user, isAuthenticated, sessionLoading, router]);
+  }, [user, isAuthenticated, isLoading, router]);
 
   // If loading, show spinner
-  if (sessionLoading || isLoading) {
+  if (isLoading || isLoadingStats) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>

@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useId } from "react";
 import { useRouter } from "next/navigation";
-import { AuthModal } from "@/components/auth-modal";
-import Image from "next/image";
 
 import { useSocket } from "@/hooks/use-socket";
 import { GameCard } from "@/components/game-card";
@@ -13,10 +11,12 @@ import { GamesFilter } from "@/components/game-filters";
 import { useToast } from "@/hooks/use-toast";
 import { CreateRoomModal, RoomCodeModal } from "@/components/create-room-modal";
 import { JoinRoomModal } from "@/components/join-room-modal";
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useAuth } from "@/hooks/use-auth";
 
 // Memoized GameCard component
 const MemoizedGameCard = memo(GameCard);
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function GameRoomsClient({ initialRooms }) {
   const { toast } = useToast();
@@ -34,14 +34,13 @@ export function GameRoomsClient({ initialRooms }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [createdRoomCode, setCreatedRoomCode] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeRoomCode, setActiveRoomCode] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
 
-  // Use session manager for optimized session handling
-  const { user, isAuthenticated } = useSessionManager();
+  // Use auth hook
+  const { user, isAuthenticated, needsAuthChoice } = useAuth();
 
   // Use a stable ID from React's useId hook
   const baseId = useId();
@@ -71,32 +70,27 @@ export function GameRoomsClient({ initialRooms }) {
     return `${adj}${noun}`;
   }, []);
 
-  // Add a function to get or create a user name
-  const getUserName = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const storedName = localStorage.getItem("playerName");
-      if (storedName) {
-        return storedName;
-      }
-      const generatedName = generatePlayerName();
-      localStorage.setItem("playerName", generatedName);
-      return generatedName;
-    }
-    return generatePlayerName();
-  }, [generatePlayerName]);
+  // Use authenticated user data when available
+  const currentUserId = user?.id || `anon-${baseId.replace(/:/g, "")}`;
+  const currentUserName = user?.name || generatePlayerName();
 
-  // Use authenticated user data when available, otherwise use localStorage fallback
-  const getUserIdFromLocalStorage = () =>
-    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-  const getUserNameFromLocalStorage = () =>
-    typeof window !== "undefined" ? localStorage.getItem("playerName") : null;
-
-  const currentUserId =
-    user?.id ||
-    getUserIdFromLocalStorage() ||
-    `anon-${baseId.replace(/:/g, "")}`;
-  const currentUserName =
-    user?.name || getUserNameFromLocalStorage() || generatePlayerName();
+  // Don't render room actions if user hasn't made auth choice or isn't authenticated
+  if (needsAuthChoice || !isAuthenticated) {
+    return (
+      <div className="text-center py-12 min-h-[600px] flex flex-col items-center justify-center bg-white/50 rounded-2xl border-4 border-violet-200 font-poppins">
+        <div className="text-6xl mb-4">🎮</div>
+        <h3 className="text-xl font-bangers text-gray-700 mb-2 tracking-wide">
+          Welcome to RMCS!
+        </h3>
+        <p className="text-gray-500">
+          {needsAuthChoice 
+            ? "Please choose your authentication method to continue playing."
+            : "Authenticating... Please wait."
+          }
+        </p>
+      </div>
+    );
+  }
 
   // Check if user is already in a room on component mount
   useEffect(() => {
@@ -161,13 +155,13 @@ export function GameRoomsClient({ initialRooms }) {
     // Add a periodic refresh of game rooms
     const refreshTimer = setInterval(async () => {
       try {
-        const result = await fetch("/api/rooms").then((res) => res.json());
+        const result = await fetch(`${API_BASE_URL}/api/rooms`).then((res) => res.json());
         if (result.success) {
           setRooms((prevRooms) => {
             const existingRoomsMap = new Map(
               prevRooms.map((room) => [room.id, room])
             );
-            return result.data.map((newRoom) => {
+            return result.rooms.map((newRoom) => {
               const existingRoom = existingRoomsMap.get(newRoom.id);
               if (existingRoom) {
                 return {
@@ -332,22 +326,13 @@ export function GameRoomsClient({ initialRooms }) {
         return;
       }
 
-      if (!isAuthenticated && !localStorage.getItem("dismissAuthModal")) {
-        setPendingAction(() => () => proceedWithJoiningRoom(room));
-        setIsAuthModalOpen(true);
-        return;
-      }
-
-      if (!isAuthenticated) {
-        localStorage.setItem("playerName", currentUserName);
-        localStorage.setItem("userId", currentUserId);
-      }
-
       try {
-        const response = await fetch(`/api/rooms/${room.roomCode}/join`, {
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(`${API_BASE_URL}/api/rooms/${room.roomCode}/join`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
           body: JSON.stringify({
             userId: currentUserId,
@@ -387,10 +372,7 @@ export function GameRoomsClient({ initialRooms }) {
       currentUserName,
       toast,
       router,
-      isAuthenticated,
       setIsJoinModalOpen,
-      setIsAuthModalOpen,
-      setPendingAction,
     ]
   );
 
@@ -442,24 +424,17 @@ export function GameRoomsClient({ initialRooms }) {
     [rooms, toast, router, activeRoomCode, proceedWithJoiningRoom]
   );
 
-  // Update handleCreateRoom to use auth data
+  // Update handleCreateRoom to use backend API
   const handleCreateRoom = useCallback(
     async (roomName) => {
       try {
-        if (!isAuthenticated && !localStorage.getItem("dismissAuthModal")) {
-          setPendingAction(() => () => handleCreateRoom(roomName));
-          setIsAuthModalOpen(true);
-          return;
-        }
-
-        if (!isAuthenticated) {
-          localStorage.setItem("playerName", currentUserName);
-          localStorage.setItem("userId", currentUserId);
-        }
-
-        const response = await fetch("/api/rooms", {
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(`${API_BASE_URL}/api/rooms`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
           body: JSON.stringify({
             title: roomName,
             hostId: currentUserId,
@@ -473,17 +448,18 @@ export function GameRoomsClient({ initialRooms }) {
           throw new Error(errorData.error || "Failed to create room");
         }
 
-        const { data: newRoom } = await response.json();
+        const { room: newRoom } = await response.json();
         setRooms((prevRooms) => [newRoom, ...prevRooms]);
         setCreatedRoomCode(newRoom.roomCode);
 
         setActiveRoomCode(newRoom.roomCode);
         localStorage.setItem("activeRoomCode", newRoom.roomCode);
 
-        await fetch(`/api/rooms/${newRoom.roomCode}/join`, {
+        await fetch(`${API_BASE_URL}/api/rooms/${newRoom.roomCode}/join`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
           body: JSON.stringify({
             userId: currentUserId,
@@ -517,9 +493,6 @@ export function GameRoomsClient({ initialRooms }) {
       currentUserName,
       toast,
       router,
-      isAuthenticated,
-      setIsAuthModalOpen,
-      setPendingAction,
     ]
   );
 
@@ -527,7 +500,7 @@ export function GameRoomsClient({ initialRooms }) {
   const handleJoinByCode = useCallback(
     async (roomCode) => {
       try {
-        const response = await fetch(`/api/rooms/${roomCode}`);
+        const response = await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`);
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error(
@@ -538,7 +511,7 @@ export function GameRoomsClient({ initialRooms }) {
           }
         }
 
-        const { data: room } = await response.json();
+        const { room } = await response.json();
 
         if (activeRoomCode && activeRoomCode !== roomCode) {
           toast({
@@ -548,9 +521,13 @@ export function GameRoomsClient({ initialRooms }) {
           });
 
           try {
-            await fetch(`/api/rooms/${activeRoomCode}/leave`, {
+            const token = localStorage.getItem("auth_token");
+            await fetch(`${API_BASE_URL}/api/rooms/${activeRoomCode}/leave`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                "Content-Type": "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
+              },
               body: JSON.stringify({ userId: currentUserId }),
             });
           } catch (error) {
@@ -569,7 +546,7 @@ export function GameRoomsClient({ initialRooms }) {
         });
       }
     },
-    [toast, router, activeRoomCode, proceedWithJoiningRoom, currentUserId]
+    [toast, activeRoomCode, proceedWithJoiningRoom, currentUserId]
   );
 
   // Memoized pagination calculations
@@ -581,14 +558,6 @@ export function GameRoomsClient({ initialRooms }) {
     );
     return { totalPages, paginatedRooms };
   }, [filteredRooms, currentPage, pageSize]);
-
-  // Handle auth success
-  const handleAuthSuccess = useCallback(() => {
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
-    }
-  }, [pendingAction]);
 
   return (
     <>
@@ -610,21 +579,6 @@ export function GameRoomsClient({ initialRooms }) {
       {!socket.isConnected && !isLoading && (
         <div className="mb-4 p-2 bg-amber-50 text-amber-800 rounded-lg border border-amber-200 text-sm">
           Connecting to game server... Some features may be limited.
-        </div>
-      )}
-
-      {/* Display auth status */}
-      {!isAuthenticated && (
-        <div className="mb-4 p-2 bg-blue-50 text-blue-800 rounded-lg border border-blue-200 text-sm flex items-center justify-between">
-          <span>
-            Sign in to track your game stats and create persistent rooms.
-          </span>
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="text-xs bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-full text-blue-700 font-medium"
-          >
-            Sign In
-          </button>
         </div>
       )}
 
@@ -693,13 +647,6 @@ export function GameRoomsClient({ initialRooms }) {
         isOpen={isCodeModalOpen}
         onClose={() => setIsCodeModalOpen(false)}
         roomCode={createdRoomCode}
-      />
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={handleAuthSuccess}
-        message="Sign in to save your game progress and statistics"
       />
     </>
   );

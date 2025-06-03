@@ -20,12 +20,14 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock next-auth
-vi.mock("next-auth/react", () => ({
-  useSession: () => ({
-    data: null,
-    status: "unauthenticated",
+// Mock auth hook
+vi.mock("../src/hooks/use-auth", () => ({
+  useAuth: () => ({
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    createGuest: vi.fn(),
   }),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
 }));

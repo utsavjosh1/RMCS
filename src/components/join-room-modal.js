@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { api } from "@/lib/api";
 
 export function JoinRoomModal({ isOpen, onClose, onJoinRoom }) {
   const [roomCode, setRoomCode] = useState("");
@@ -30,8 +31,7 @@ export function JoinRoomModal({ isOpen, onClose, onJoinRoom }) {
     setIsSubmitting(true);
     
     try {
-      // First verify the room exists
-      const response = await fetch(`/api/rooms/${roomCode}`);
+      const response = await api.getRoom(roomCode);
       
       if (!response.ok) {
         if (response.status === 404) {

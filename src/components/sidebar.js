@@ -18,7 +18,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useAuth } from "@/hooks/use-auth";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,7 @@ export function Sidebar({ className }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  const { user, isAuthenticated } = useSessionManager();
+  const { user, isAuthenticated } = useAuth();
 
   // Handle initial load animation
   useEffect(() => {
@@ -236,24 +236,24 @@ export function Sidebar({ className }) {
                     )}
                   </motion.button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
+                <DropdownMenuContent align="end" className="w-56 p-2">
+                  <DropdownMenuLabel className="px-2 py-1.5">My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem asChild className="px-2 py-2.5">
+                    <Link href="/profile" className="flex items-center">
+                      <User className="mr-3 h-4 w-4" />
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem asChild className="px-2 py-2.5">
+                    <Link href="/settings" className="flex items-center">
+                      <Settings className="mr-3 h-4 w-4" />
                       <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem className="text-red-600 px-2 py-2.5">
+                    <LogOut className="mr-3 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -300,33 +300,35 @@ export function Sidebar({ className }) {
             <>
               <div
                 className={cn(
-                  "pt-4 mt-2",
+                  "pt-6 mt-4 mb-2",
                   !collapsed && "border-t border-violet-200"
                 )}
               >
                 <motion.p
                   variants={collapsed ? {} : itemVariants}
                   className={cn(
-                    "text-xs font-medium text-violet-600 mb-2 uppercase tracking-wider",
-                    collapsed ? "text-center" : "px-2"
+                    "text-xs font-medium text-violet-600 mb-4 uppercase tracking-wider",
+                    collapsed ? "text-center" : "px-3"
                   )}
                 >
                   {collapsed ? "PROF" : "PROFILE"}
                 </motion.p>
-                {profileItems.map((item) => (
-                  <NavItem
-                    key={item.href}
-                    icon={item.icon}
-                    label={item.label}
-                    href={item.href}
-                    collapsed={collapsed}
-                    active={pathname === item.href}
-                    color={item.color}
-                    activeColor={item.activeColor}
-                    description={item.description}
-                    badge={item.badge}
-                  />
-                ))}
+                <div className="space-y-3 px-1">
+                  {profileItems.map((item) => (
+                    <NavItem
+                      key={item.href}
+                      icon={item.icon}
+                      label={item.label}
+                      href={item.href}
+                      collapsed={collapsed}
+                      active={pathname === item.href}
+                      color={item.color}
+                      activeColor={item.activeColor}
+                      description={item.description}
+                      badge={item.badge}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}

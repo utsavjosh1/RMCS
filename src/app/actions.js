@@ -1,42 +1,37 @@
 "use server";
 
-import prisma from "@/db/prisma";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getInitialRooms() {
   try {
-    // Fetch all active rooms with optimized query
-    const rooms = await prisma.gameRoom.findMany({
-      where: {
-        status: {
-          in: ["waiting", "in_progress"]
-        }
-      },
-      include: {
-        players: true,
-        playersList: {
-          select: {
-            id: true,
-            name: true,
-            isReady: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: "desc"
-      },
-      // Limit to a reasonable number for performance
-      take: 50
+    // Fetch all active rooms from the Node.js backend
+    const response = await fetch(`${API_BASE_URL}/api/rooms`, {
+      cache: 'no-store', // Ensure fresh data
     });
 
-    return {
-      success: true,
-      data: rooms
-    };
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      return {
+        success: true,
+        data: result.rooms || [],
+      };
+    } else {
+      return {
+        success: false,
+        error: "Failed to fetch rooms from backend",
+      };
+    }
   } catch (error) {
     console.error("Error fetching rooms:", error);
     return {
       success: false,
-      error: "Failed to fetch rooms"
+      error: "Failed to fetch rooms",
+      data: [], // Return empty array as fallback
     };
   }
 }

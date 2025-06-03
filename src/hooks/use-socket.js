@@ -1,5 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { io } from "socket.io-client";
+import { api } from "@/lib/api";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function useSocket() {
   const socketRef = useRef(null);
@@ -11,35 +14,37 @@ export function useSocket() {
 
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io(
-      process.env.SOCKET_URL || "http://localhost:3001",
-      {
-        autoConnect: true,
-        reconnectionAttempts: maxReconnectAttempts,
-        reconnectionDelay: 1000,
-        timeout: 20000,
-        transports: ["websocket", "polling"],
-        path: "/socket.io",
-      }
-    );
+    socketRef.current = io(API_BASE_URL, {
+      autoConnect: true,
+      reconnectionAttempts: maxReconnectAttempts,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+      transports: ["polling", "websocket"], // Try polling first, then websocket
+      path: "/socket.io/",
+      forceNew: true, // Force a new connection
+    });
 
     // Connection event handlers
     const onConnect = () => {
+      console.log("Socket connected successfully");
       setIsConnected(true);
       setConnectionError(null);
       setReconnectAttempts(0);
     };
 
     const onDisconnect = (reason) => {
+      console.log("Socket disconnected:", reason);
       setIsConnected(false);
 
       // Handle special disconnect cases
       if (reason === "io server disconnect") {
         // Server initiated disconnect, don't reconnect automatically
+        console.log("Server initiated disconnect");
       } else {
         // Client-side disconnect, try to reconnect
         setReconnectAttempts((prev) => {
           const newCount = prev + 1;
+          console.log(`Reconnect attempt ${newCount}/${maxReconnectAttempts}`);
 
           if (newCount <= maxReconnectAttempts) {
             setTimeout(() => {
@@ -197,12 +202,9 @@ export function useSocket() {
     async ({ roomCode, userId, userName }) => {
       // First, call the API endpoint to update the database
       try {
-        const response = await fetch(`/api/rooms/${roomCode}/join`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, userName }),
+        const response = await api.joinRoom(roomCode, {
+          userId,
+          userName,
         });
 
         if (!response.ok) {
@@ -224,12 +226,8 @@ export function useSocket() {
     async ({ roomCode, userId }) => {
       // First, call the API endpoint to update the database
       try {
-        const response = await fetch(`/api/rooms/${roomCode}/leave`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
+        const response = await api.leaveRoom(roomCode, {
+          userId,
         });
 
         if (!response.ok) {
@@ -252,12 +250,9 @@ export function useSocket() {
     async ({ roomCode, userId, isReady }) => {
       try {
         // First update the database via the API
-        const response = await fetch(`/api/rooms/${roomCode}/ready`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, isReady }),
+        const response = await api.setReady(roomCode, {
+          userId,
+          isReady,
         });
 
         if (!response.ok) {
@@ -281,15 +276,9 @@ export function useSocket() {
     async ({ roomCode }) => {
       try {
         // First update the game status in the database
-        const response = await fetch(`/api/rooms/${roomCode}/start`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            hostId:
-              socketRef.current?.auth?.userId || localStorage.getItem("userId"),
-          }),
+        const response = await api.startGame(roomCode, {
+          hostId:
+            socketRef.current?.auth?.userId || localStorage.getItem("userId"),
         });
 
         if (!response.ok) {

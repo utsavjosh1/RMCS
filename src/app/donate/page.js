@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 const Donate = () => {
   const { toast } = useToast();
@@ -42,9 +43,8 @@ const Donate = () => {
   const fetchTestimonials = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/testimonials");
-      const data = await response.json();
-      setTestimonials(data.data || []);
+      const response = await api.getTestimonials();
+      setTestimonials(response.data || []);
     } catch (error) {
       console.error("Error fetching testimonials:", error);
       setTestimonials([]);
@@ -99,17 +99,14 @@ const Donate = () => {
       setCustomAmount("");
     } else {
       try {
-        const response = await fetch("/api/testimonials", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(testimonialDetails),
+        const response = await api.createTestimonial({
+          name: testimonialDetails.name,
+          email: testimonialDetails.email,
+          content: testimonialDetails.content,
+          rating: parseInt(testimonialDetails.rating, 10),
         });
 
-        const data = await response.json();
-        
-        if (data.success) {
+        if (response.success) {
           toast({
             title: "Thank You For Your Feedback!",
             description: "Your testimonial has been submitted successfully.",

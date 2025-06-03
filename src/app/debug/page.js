@@ -1,17 +1,20 @@
 "use client";
 
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function DebugPage() {
-  const { user, isAuthenticated, isLoading: sessionLoading, checkSession, refreshSession } = useSessionManager();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
   const [detailedResponse, setDetailedResponse] = useState(null);
   const [cookieInfo, setCookieInfo] = useState(null);
   const cookieChecked = useRef(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   // Get cookie information on mount - but only once
   useEffect(() => {
@@ -23,8 +26,8 @@ export default function DebugPage() {
         .filter(cookie => cookie);
       
       const authCookies = cookies.filter(
-        cookie => cookie.startsWith('next-auth.session-token=') || 
-                 cookie.startsWith('authjs.session-token=')
+        cookie => cookie.startsWith('rmcs.session=') || 
+                 cookie.startsWith('auth_token=')
       );
       
       setCookieInfo({
@@ -38,61 +41,49 @@ export default function DebugPage() {
   // Manual tests triggered by button clicks - no automatic API calls
   const testProfileRoute = async () => {
     try {
-      setError(null);
-      const response = await fetch("/api/users/debug");
-      const data = await response.json();
-      setApiResponse(data);
-    } catch (err) {
-      setError(err.message);
+      setIsTesting(true);
+      const debugResponse = await api.getUserDebug();
+      setDebugInfo(debugResponse);
+    } catch (error) {
+      console.error('Debug fetch failed:', error);
+      setDebugInfo({ error: 'Failed to fetch debug info' });
+    } finally {
+      setIsTesting(false);
     }
   };
 
   const verifySession = async () => {
     try {
-      setError(null);
-      const response = await fetch("/api/users/verify-session");
-      const data = await response.json();
-      setDetailedResponse(data);
-    } catch (err) {
-      setError(err.message);
+      setIsTesting(true);
+      const authResponse = await api.getAuthMe();
+      setDebugInfo(authResponse);
+    } catch (error) {
+      console.error('Auth me fetch failed:', error);
+      setDebugInfo({ error: 'Failed to fetch auth info' });
+    } finally {
+      setIsTesting(false);
     }
   };
 
   const refreshUserSession = async () => {
     try {
-      setError(null);
-      // Force a session refresh
-      await refreshSession();
-      setApiResponse({ message: "Session refreshed successfully" });
-      
-      // Also update cookie info
-      if (typeof window !== 'undefined') {
-        const cookies = document.cookie.split(';')
-          .map(cookie => cookie.trim())
-          .filter(cookie => cookie);
-        
-        const authCookies = cookies.filter(
-          cookie => cookie.startsWith('next-auth.session-token=') || 
-                   cookie.startsWith('authjs.session-token=')
-        );
-        
-        setCookieInfo({
-          allCookies: cookies.map(c => c.split('=')[0]),
-          authCookies: authCookies.map(c => c.split('=')[0]),
-          authCookiesPresent: authCookies.length > 0
-        });
-      }
-    } catch (err) {
-      setError(err.message);
+      setIsTesting(true);
+      const sessionResponse = await api.verifySession();
+      setDebugInfo(sessionResponse);
+    } catch (error) {
+      console.error('Session verification failed:', error);
+      setDebugInfo({ error: 'Failed to verify session' });
+    } finally {
+      setIsTesting(false);
     }
   };
 
   const forceSignOut = async () => {
     try {
-      await signOut({ redirect: false });
-      window.location.reload();
-    } catch (err) {
-      setError(err.message);
+      await api.logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   };
 
@@ -101,9 +92,9 @@ export default function DebugPage() {
       <h1 className="text-2xl font-bold mb-6">Session Debug Page</h1>
       
       <div className="bg-gray-100 p-6 rounded-lg mb-6">
-        <h2 className="text-xl font-semibold mb-4">Session Status: {sessionLoading ? "loading" : isAuthenticated ? "authenticated" : "unauthenticated"}</h2>
+        <h2 className="text-xl font-semibold mb-4">Session Status: {isTesting ? "loading" : isAuthenticated ? "authenticated" : "unauthenticated"}</h2>
         
-        {sessionLoading && (
+        {isTesting && (
           <div className="animate-pulse">Loading session information...</div>
         )}
         
